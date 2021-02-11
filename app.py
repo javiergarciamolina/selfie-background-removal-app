@@ -95,7 +95,7 @@ def is_correctly_oriented(image):
     
     # returns the estimated probability that the given image has correct orientation
     # assumes that the image has shape of (224,224,3)
-    image = img_to_array(image)
+    image = img_to_array(image)[:,:,:3]
     
     # preprocessing function of MobileNetV2
     preprocessed_image = mobilenet_v2.preprocess_input(image)
@@ -113,7 +113,7 @@ def correct_orientation(image):
     
     # if it's very likely to be already correctly oriented, return 0
     if correctly_oriented > 0.9:
-        return 0
+        return image
     
     # otherwise, let's compute all the probabilities:
     probabilities = [correctly_oriented]
@@ -174,15 +174,17 @@ def main():
       final_shape = get_final_shape(orig_image)
 
       image = orig_image.resize((224,224))
-#       image = correct_orientation(image)
+      image = np.array(image)
+      image = correct_orientation(image)
    
       image = np.array(image) / 255
+      image = image[:,:,:3]
       image = np.expand_dims(image, axis=0)
+      
 	
     if st.button("Process"):
-                    
       pred = unet.predict(image)[0]
-      
+      pred = unet.predict(image)
       mask = 1-((1-image)*pred)
       mask = array_to_img(mask[0])
       mask = mask.resize(final_shape)
